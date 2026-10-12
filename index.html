@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Jugamos a Naturales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}[hidden]{display:none!important}
+
+/* Layout: tarjeta fija con la definición arriba, pestañas de 3 juegos, cada juego en una sola columna que se ensancha en escritorio */
+:root{
+  --bg:#EAF3F7; --surface:#FFFFFF; --ink:#1D2B3A; --muted:#566778; --line:#CFDDE6;
+  --kidney:#D8645A; --kidney-soft:#F7DCD8; --urine:#EFBF45; --urine-soft:#FBEFC9;
+  --water:#2F86C6; --water-soft:#D6E9F7; --artery:#D9483F; --vein:#3B7FD1; --tube:#E9C27E;
+  --ok:#21915F; --ok-soft:#D5F0E2; --bad:#C9433F; --bad-soft:#F8DAD8;
+  --f-display:"Fredoka","Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Nunito","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101921; --surface:#1A2632; --ink:#E7EFF6; --muted:#9DB0C2; --line:#2D3D4D;
+  --kidney:#E87E74; --kidney-soft:#3A2526; --urine:#F2C85A; --urine-soft:#3A3220;
+  --water:#62AEE8; --water-soft:#1C3347; --artery:#E8665E; --vein:#5E9BE6; --tube:#D6AE6C;
+  --ok:#4CC48C; --ok-soft:#163627; --bad:#EE7470; --bad-soft:#3B1E1E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101921; --surface:#1A2632; --ink:#E7EFF6; --muted:#9DB0C2; --line:#2D3D4D;
+  --kidney:#E87E74; --kidney-soft:#3A2526; --urine:#F2C85A; --urine-soft:#3A3220;
+  --water:#62AEE8; --water-soft:#1C3347; --artery:#E8665E; --vein:#5E9BE6; --tube:#D6AE6C;
+  --ok:#4CC48C; --ok-soft:#163627; --bad:#EE7470; --bad-soft:#3B1E1E; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:14px 40px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:clamp(1.7rem,6vw,2.4rem);font-weight:700;color:var(--water)}
+h1 span{color:var(--kidney)}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.stars{font-family:var(--f-display);font-weight:600;background:var(--urine-soft);color:var(--ink);border-radius:999px;padding:4px 14px;font-variant-numeric:tabular-nums}
+.def{background:var(--water-soft);border:2px dashed var(--water);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.def .lab{font-family:var(--f-display);font-weight:600;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--water)}
+.def p{margin:0;font-size:1.08rem;font-weight:700}
+.def u{text-decoration-color:var(--kidney);text-decoration-thickness:3px;text-underline-offset:3px}
+.def .row{display:flex;gap:8px;flex-wrap:wrap}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tab{font-family:var(--f-display);font-weight:600;font-size:1rem;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:14px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tab small{font-family:var(--f-body);font-weight:600;color:var(--muted);font-size:.75rem}
+.tab[aria-selected="true"]{border-color:var(--kidney);background:var(--kidney-soft)}
+.panel{background:var(--surface);border-radius:20px;padding:18px 16px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--line)}
+.panel h2{font-size:1.4rem}
+.lead{margin:0;color:var(--muted)}
+button{font:inherit}
+.btn{font-family:var(--f-display);font-weight:600;border:0;border-radius:12px;padding:10px 16px;cursor:pointer;background:var(--water);color:#fff;font-size:1rem}
+.btn.alt{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.warm{background:var(--kidney)}
+.btn:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:3px solid var(--urine);outline-offset:2px}
+.fb{border-radius:14px;padding:12px 14px;font-weight:600;min-height:3em}
+.fb.ok{background:var(--ok-soft);border-left:6px solid var(--ok)}
+.fb.bad{background:var(--bad-soft);border-left:6px solid var(--bad)}
+.fb.info{background:var(--urine-soft);border-left:6px solid var(--urine)}
+.fb b{font-family:var(--f-display)}
+/* Juego 1 */
+.board{position:relative;width:100%;max-width:440px;margin:0 auto;aspect-ratio:400/420}
+.board svg{position:absolute;inset:0;width:100%;height:100%}
+.zone{position:absolute;width:33%;min-height:40px;border:2.5px dashed var(--muted);border-radius:12px;background:var(--surface);display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--f-display);font-weight:600;font-size:clamp(.82rem,3.4vw,1rem);color:var(--muted);cursor:pointer;padding:4px;transition:transform .15s}
+.zone.sel{border-color:var(--water);background:var(--water-soft)}
+.zone.done{border:2.5px solid var(--ok);background:var(--ok-soft);color:var(--ink);cursor:default}
+.zone.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{font-family:var(--f-display);font-weight:600;font-size:1rem;border:2px solid var(--kidney);background:var(--kidney-soft);color:var(--ink);border-radius:999px;padding:8px 16px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.chip.sel{background:var(--kidney);color:#fff}
+.chip.ghost{position:fixed;pointer-events:none;z-index:50;transform:translate(-50%,-50%) scale(1.08);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.chip.lifted{opacity:.35}
+/* Juego 2 */
+.match{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.5fr);gap:10px 12px}
+.col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.card{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:14px;padding:10px 12px;text-align:left;cursor:pointer;font-size:.95rem;line-height:1.35;display:flex;gap:8px;align-items:center;min-height:56px}
+.card.term{font-family:var(--f-display);font-weight:600;font-size:1.02rem;justify-content:center;text-align:center}
+.card.sel{border-color:var(--water);background:var(--water-soft)}
+.card.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.card.done{cursor:default;border-color:var(--pc);background:color-mix(in srgb,var(--pc) 16%,var(--surface))}
+.badge{flex:none;width:26px;height:26px;border-radius:50%;background:var(--pc);color:#fff;font-family:var(--f-display);font-weight:700;display:none;align-items:center;justify-content:center;font-size:.85rem}
+.card.done .badge{display:inline-flex}
+/* Juego 3 */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.qnum{font-family:var(--f-display);color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.q{font-family:var(--f-display);font-size:1.35rem;font-weight:600}
+textarea{width:100%;min-height:120px;border:2px solid var(--line);border-radius:14px;padding:12px;font:inherit;background:var(--bg);color:var(--ink);resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tip{font-size:.88rem;color:var(--muted);margin:0}
+.model{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:.95rem}
+.checks{list-style:none;padding:0;margin:6px 0 0;display:flex;flex-direction:column;gap:4px}
+.checks li::before{content:"✔ ";color:var(--ok);font-weight:800}
+.checks li.miss::before{content:"✖ ";color:var(--bad)}
+.dots{display:flex;gap:6px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.dot.on{background:var(--ok)}
+.dot.cur{background:var(--urine)}
+@media (prefers-reduced-motion: reduce){.zone.shake{animation:none}*{transition:none!important}}
+
+.hello{font-family:var(--f-display);font-weight:600;color:var(--muted)}
+.start{display:flex;flex-direction:column;gap:14px}
+.start input{font:inherit;font-size:1.2rem;padding:12px 14px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);width:100%}
+.systems{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.sys{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:20px;padding:16px;text-align:left;cursor:pointer;display:flex;gap:14px;align-items:center}
+.sys svg{flex:none;width:64px;height:64px}
+.sys b{font-family:var(--f-display);font-size:1.3rem;display:block}
+.sys span{color:var(--muted);font-size:.9rem}
+.sys:hover{border-color:var(--kidney)}
+.mic{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.92rem;color:var(--muted)}
+.pill{border-radius:999px;padding:3px 12px;font-weight:700;font-size:.85rem;background:var(--urine-soft);color:var(--ink)}
+.pill.ok{background:var(--ok-soft)}.pill.bad{background:var(--bad-soft)}
+.back{align-self:flex-start}
+.speak{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn.rec{background:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1 id="h1">Jugamos a <span>Naturales</span></h1>
+    <div class="stars" id="stars" aria-live="polite">★ 0 estrellas</div>
+  </div>
+
+  <!-- INICIO -->
+  <section class="panel start" id="home">
+    <div id="askName">
+      <h2>¡Hola! ¿Cómo te llamás?</h2>
+      <p class="lead">Escribí tu nombre para que la seño (y papá) vean cómo te fue.</p>
+      <div class="row" style="margin-top:10px">
+        <input id="name" autocomplete="given-name" placeholder="Tu nombre" maxlength="40">
+        <button class="btn" id="saveName" type="button">Listo</button>
+      </div>
+    </div>
+    <div id="pick" hidden>
+      <div class="hello" id="hello"></div>
+      <h2>¿Qué querés estudiar hoy?</h2>
+      <div class="systems" style="margin-top:12px">
+        <button class="sys" data-sys="excretor" type="button">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path transform="translate(22 30) scale(.42)" d="M0,-54 C-40,-54 -44,54 0,54 C23,54 31,38 25,22 C19,10 19,-10 25,-22 C31,-38 23,-54 0,-54 Z" fill="var(--kidney)"/><path transform="translate(42 30) scale(-.42 .42)" d="M0,-54 C-40,-54 -44,54 0,54 C23,54 31,38 25,22 C19,10 19,-10 25,-22 C31,-38 23,-54 0,-54 Z" fill="var(--kidney)"/><ellipse cx="32" cy="56" rx="7" ry="5" fill="var(--urine)"/></svg>
+          <div><b>Sistema excretor</b><span>Riñones, uréteres, vejiga y uretra</span></div>
+        </button>
+        <button class="sys" data-sys="respiratorio" type="button">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="29" y="6" width="6" height="26" rx="3" fill="var(--water)"/><path d="M28 24 C14 22 8 40 8 50 C8 58 26 58 28 50 Z" fill="var(--kidney)"/><path d="M36 24 C50 22 56 40 56 50 C56 58 38 58 36 50 Z" fill="var(--kidney)"/></svg>
+          <div><b>Sistema respiratorio</b><span>Nariz, tráquea, bronquios y pulmones</span></div>
+        </button>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="btn alt" id="changeName" type="button">No soy yo, cambiar nombre</button></div>
+    </div>
+    <div class="mic"><span>Micrófono:</span><span class="pill" id="micState">pidiendo permiso…</span><button class="btn alt" id="micAsk" type="button" hidden>Permitir micrófono</button></div>
+  </section>
+
+  <!-- JUEGO -->
+  <div id="game" hidden style="display:flex;flex-direction:column;gap:16px">
+    <button class="btn alt back" id="back" type="button">← Elegir otro sistema</button>
+    <section class="def" aria-label="Definición">
+      <div class="lab">La definición que tenés que saber</div>
+      <p id="defText"></p>
+      <div class="row"><button class="btn alt" id="sayDef" type="button">Escuchar definición</button></div>
+    </section>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-tab="g1" type="button">Armar<small>ubicá los órganos</small></button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="g2" type="button">Unir<small>palabra y función</small></button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="g3" type="button">Explicar<small>escribí o hablá</small></button>
+    </div>
+
+    <section class="panel" id="g1" role="tabpanel">
+      <h2>¿Dónde va cada órgano?</h2>
+      <p class="lead">Arrastrá cada nombre a su cuadrito. Si te cuesta arrastrar, tocá el nombre y después tocá el cuadrito. ¡Ojo, hay dos nombres que no son de este sistema!</p>
+      <div class="board" id="board"></div>
+      <div class="chips" id="chips"></div>
+      <div class="fb info" id="fb1" aria-live="polite"></div>
+      <div class="row"><button class="btn alt" id="reset1" type="button">Empezar de nuevo</button></div>
+    </section>
+
+    <section class="panel" id="g2" role="tabpanel" hidden>
+      <h2>Uní cada palabra con lo que hace</h2>
+      <p class="lead">Tocá una palabra de la izquierda y después la frase que le corresponde.</p>
+      <div class="match"><div class="col" id="left"></div><div class="col" id="right"></div></div>
+      <div class="fb info" id="fb2" aria-live="polite"></div>
+      <div class="row"><button class="btn alt" id="reset2" type="button">Mezclar de nuevo</button></div>
+    </section>
+
+    <section class="panel" id="g3" role="tabpanel" hidden>
+      <div class="qhead"><h2>Explicalo con tus palabras</h2><div class="dots" id="dots"></div></div>
+      <div class="qnum" id="qnum"></div>
+      <div class="q" id="q"></div>
+      <label for="ans" class="tip">Tu respuesta</label>
+      <textarea id="ans" placeholder="Escribí acá o tocá Hablar…"></textarea>
+      <div class="speak">
+        <button class="btn warm" id="dictate" type="button">🎤 Hablar</button>
+        <span class="tip" id="dictTip">Tocá Hablar, decí tu respuesta y tocá de nuevo para terminar.</span>
+      </div>
+      <div class="row">
+        <button class="btn" id="check" type="button">Revisar</button>
+        <button class="btn alt" id="sayQ" type="button">Escuchar pregunta</button>
+        <button class="btn alt" id="next" type="button">Siguiente →</button>
+      </div>
+      <div class="fb info" id="fb3" aria-live="polite"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+const ENDPOINT="https://script.google.com/macros/s/AKfycbz6XUVEf6YK7Z7zZQTLAZGEs3yJL9vYgqr-H1WPg-42747bG8uOvAu_cOSzhRpxRoFLTw/exec";
+const $=s=>document.querySelector(s);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const KID='M0,-54 C-40,-54 -44,54 0,54 C23,54 31,38 25,22 C19,10 19,-10 25,-22 C31,-38 23,-54 0,-54 Z';
+const LUNG='M232 182 C200 176 178 232 176 300 C175 352 186 384 214 386 C236 388 246 376 246 356 L246 236 C246 204 240 184 232 182 Z';
+
+const DATA={
+excretor:{
+ title:'Sistema <span>excretor</span>',
+ defHtml:'El sistema excretor se encarga de <u>eliminar las sustancias de desecho</u> de nuestro cuerpo y de <u>mantener el equilibrio</u> de agua y sales minerales.',
+ view:"0 0 400 420",aspect:"400/420",maxw:"440px",zoneW:"33%",
+ zones:[["rinones",1,3],["ureteres",66,44],["vejiga",1,71],["uretra",66,86]],
+ svg:`<g stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 4" fill="none"><line x1="70" y1="40" x2="108" y2="92"/><line x1="335" y1="215" x2="257" y2="232"/><line x1="70" y1="315" x2="160" y2="325"/><line x1="330" y1="380" x2="205" y2="392"/></g>
+ <rect x="184" y="20" width="13" height="225" rx="6" fill="var(--vein)"/><rect x="204" y="20" width="13" height="225" rx="6" fill="var(--artery)"/>
+ <path d="M144 122 C170 112 190 108 210 110" stroke="var(--artery)" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M144 136 C165 136 180 136 190 134" stroke="var(--vein)" stroke-width="6" fill="none" stroke-linecap="round"/>
+ <path d="M256 122 C235 116 222 114 211 116" stroke="var(--artery)" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M256 138 C230 142 205 142 190 140" stroke="var(--vein)" stroke-width="6" fill="none" stroke-linecap="round"/>
+ <path d="M143 150 C150 220 138 280 168 312" stroke="var(--tube)" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M257 150 C250 220 262 280 232 312" stroke="var(--tube)" stroke-width="9" fill="none" stroke-linecap="round"/>
+ <path transform="translate(122 130)" d="${KID}" fill="var(--kidney)"/><path transform="translate(278 130) scale(-1 1)" d="${KID}" fill="var(--kidney)"/>
+ <ellipse cx="108" cy="104" rx="9" ry="13" fill="#fff" opacity=".35"/><ellipse cx="292" cy="104" rx="9" ry="13" fill="#fff" opacity=".35"/>
+ <path d="M200 360 L200 406" stroke="var(--urine)" stroke-width="9" stroke-linecap="round"/>
+ <path d="M200 292 C240 292 252 318 246 336 C240 356 218 366 200 366 C182 366 160 356 154 336 C148 318 160 292 200 292 Z" fill="var(--urine)"/><ellipse cx="220" cy="312" rx="8" ry="10" fill="#fff" opacity=".4"/>`,
+ org:{
+  rinones:{name:"Riñones",fn:"filtran la sangre y eliminan los desechos en forma de orina.",hint:"ese lugar es donde se filtra la sangre."},
+  ureteres:{name:"Uréteres",fn:"son dos tubos que llevan la orina desde los riñones hasta la vejiga.",hint:"ese lugar es un tubo que baja la orina desde los riñones."},
+  vejiga:{name:"Vejiga",fn:"es una bolsa muscular que almacena la orina hasta el momento de expulsarla.",hint:"ese lugar es la bolsa donde se guarda la orina."},
+  uretra:{name:"Uretra",fn:"es el conducto que lleva la orina desde la vejiga hacia el exterior del cuerpo.",hint:"ese lugar es por donde la orina sale del cuerpo."},
+  pulmones:{name:"Pulmones",fn:"Los pulmones son del sistema respiratorio: ahí entra el oxígeno. No forman parte del sistema excretor.",fake:true},
+  estomago:{name:"Estómago",fn:"El estómago es parte del sistema digestivo: ahí se digiere la comida. No forma parte del sistema excretor.",fake:true}},
+ finish:"Riñones → uréteres → vejiga → uretra. Ese es el camino de la orina.",
+ pairs:[
+  ["Sistema excretor","Elimina las sustancias de desecho del cuerpo y mantiene el equilibrio de agua y sales minerales.","es todo el sistema: ¿qué elimina y qué mantiene en equilibrio?"],
+  ["Riñones","Filtran la sangre y eliminan los desechos en forma de orina.","¿qué órgano filtra la sangre?"],
+  ["Uréteres","Dos tubos que llevan la orina desde los riñones hasta la vejiga.","¿cuáles son los tubos?"],
+  ["Vejiga","Bolsa muscular que almacena la orina hasta el momento de expulsarla.","¿dónde se guarda la orina?"],
+  ["Uretra","Conducto que lleva la orina desde la vejiga hacia el exterior del cuerpo.","¿por dónde sale la orina?"],
+  ["Orina","Líquido que se forma con los desechos y el exceso de agua y sales.","¿qué líquido se forma con los desechos?"]],
+ Q:[
+  {q:"¿Qué es el sistema excretor?",model:"El sistema excretor se encarga de eliminar las sustancias de desecho de nuestro cuerpo y de mantener el equilibrio de agua y sales minerales.",
+   c:[{l:"Elimina los desechos",a:["elimin","expuls","sac","quit","echa","limpi","larg","bot"],b:["desech","residu","sustanci","toxic","no sirve","basura","sucio","malo"]},
+      {l:"Mantiene el equilibrio de agua y sales minerales",a:["equilibr","balance","regul","control","manten","nivel"],b:["agua","sal","liquid","mineral"]}]},
+  {q:"¿Qué hacen los riñones?",model:"Los riñones filtran la sangre y eliminan los desechos en forma de orina.",
+   c:[{l:"Filtran (limpian) la sangre",a:["filtr","limpi","colan"],b:["sangre"]},{l:"Forman la orina con los desechos",a:["orina","pis","pipi"]}]},
+  {q:"¿Qué son los uréteres y qué hacen?",model:"Son dos tubos que llevan la orina desde los riñones hasta la vejiga.",
+   c:[{l:"Son tubos o conductos",a:["tubo","conduct","canal","caño","cano","manguer"]},{l:"Llevan la orina",a:["orina","pis"]},{l:"De los riñones a la vejiga",a:["vejig"],b:["rinon"]}]},
+  {q:"¿Qué es la vejiga y para qué sirve?",model:"Es una bolsa muscular que almacena la orina hasta el momento de expulsarla.",
+   c:[{l:"Es una bolsa (muscular)",a:["bolsa","bolsita","musc","globo"]},{l:"Guarda la orina",a:["almacen","guard","junt","acumul","contien","tien"],b:["orina","pis"]}]},
+  {q:"¿Qué hace la uretra?",model:"Es el conducto que lleva la orina desde la vejiga hacia el exterior del cuerpo.",
+   c:[{l:"Lleva o saca la orina",a:["orina","pis"]},{l:"Hacia afuera del cuerpo",a:["exterior","afuera","fuera","sal","expuls","baño","bano"]}]},
+  {q:"¿Qué podemos hacer para cuidar el sistema excretor?",model:"Tomar agua, comer sano y no aguantar las ganas de ir al baño.",need:2,
+   c:[{l:"Tomar agua",a:["agua"]},{l:"Comer sano",a:["comer","comid","aliment","sano","saludabl"]},{l:"No aguantar las ganas de ir al baño",a:["aguant","baño","bano","ganas"]}]}]
+},
+respiratorio:{
+ title:'Sistema <span>respiratorio</span>',
+ defHtml:'El sistema respiratorio se encarga de <u>incorporar el oxígeno</u> del aire que necesita nuestro cuerpo y de <u>eliminar el dióxido de carbono</u> que se produce en él.',
+ view:"0 0 520 470",aspect:"520/470",maxw:"500px",zoneW:"30%",
+ zones:[["fosas",1,2],["laringe",1,22],["bronquios",1,48],["diafragma",1,84],["faringe",69,11],["traquea",69,33],["pulmones",69,62]],
+ svg:`<g stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 4" fill="none"><line x1="161" y1="37" x2="242" y2="58"/><line x1="161" y1="131" x2="244" y2="131"/><line x1="161" y1="254" x2="236" y2="252"/><line x1="161" y1="423" x2="205" y2="398"/><line x1="359" y1="80" x2="270" y2="92"/><line x1="359" y1="183" x2="271" y2="190"/><line x1="359" y1="319" x2="322" y2="312"/></g>
+ <path d="${LUNG}" fill="var(--kidney)"/><path transform="translate(520 0) scale(-1 1)" d="${LUNG}" fill="var(--kidney)"/>
+ <g stroke="var(--kidney-soft)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".9"><path d="M232 258 L214 290 L200 330 M214 290 L228 330 M232 258 L236 300 L222 350 M236 300 L240 340"/><path d="M288 258 L306 290 L320 330 M306 290 L292 330 M288 258 L284 300 L298 350 M284 300 L280 340"/></g>
+ <path d="M260 18 C252 38 238 54 236 62 C244 70 276 70 284 62 C282 54 268 38 260 18 Z" fill="var(--tube)"/>
+ <ellipse cx="250" cy="61" rx="5" ry="3.5" fill="var(--ink)" opacity=".7"/><ellipse cx="270" cy="61" rx="5" ry="3.5" fill="var(--ink)" opacity=".7"/>
+ <rect x="252" y="68" width="16" height="50" rx="6" fill="var(--water)"/><rect x="245" y="116" width="30" height="32" rx="9" fill="var(--vein)"/>
+ <path d="M253 128 L260 136 L267 128" stroke="#fff" stroke-width="2" fill="none" opacity=".8"/><rect x="251" y="146" width="18" height="92" rx="5" fill="var(--water)"/>
+ <g stroke="var(--surface)" stroke-width="2.5" opacity=".75"><line x1="251" y1="156" x2="269" y2="156"/><line x1="251" y1="166" x2="269" y2="166"/><line x1="251" y1="176" x2="269" y2="176"/><line x1="251" y1="186" x2="269" y2="186"/><line x1="251" y1="196" x2="269" y2="196"/><line x1="251" y1="206" x2="269" y2="206"/><line x1="251" y1="216" x2="269" y2="216"/><line x1="251" y1="226" x2="269" y2="226"/></g>
+ <path d="M260 234 C252 244 242 250 232 260 M260 234 C268 244 278 250 288 260" stroke="var(--water)" stroke-width="10" fill="none" stroke-linecap="round"/>
+ <path d="M166 404 C200 378 240 384 260 394 C280 384 320 378 354 404" stroke="var(--artery)" stroke-width="10" fill="none" stroke-linecap="round"/>`,
+ org:{
+  fosas:{name:"Fosas nasales",fn:"por ahí entra el aire, que se calienta, se humedece y se limpia con los pelitos y el moco.",hint:"ese lugar es por donde entra el aire al cuerpo."},
+  faringe:{name:"Faringe",fn:"es un conducto que está detrás de la nariz y la boca; por ahí pasa el aire (y también la comida).",hint:"ese lugar es el conducto que comparten el aire y la comida."},
+  laringe:{name:"Laringe",fn:"es donde están las cuerdas vocales, que vibran y producen la voz.",hint:"ese lugar es donde se produce la voz."},
+  traquea:{name:"Tráquea",fn:"es un tubo con anillos de cartílago que lleva el aire hasta los bronquios.",hint:"ese lugar es el tubo con anillitos que baja por el cuello."},
+  bronquios:{name:"Bronquios",fn:"son dos tubos que salen de la tráquea y entran uno en cada pulmón, donde se ramifican en bronquiolos.",hint:"ese lugar es donde el tubo se divide en dos, uno para cada pulmón."},
+  pulmones:{name:"Pulmones",fn:"en sus alvéolos el oxígeno pasa a la sangre y el dióxido de carbono sale de la sangre (intercambio de gases).",hint:"ese lugar es donde se hace el intercambio de gases."},
+  diafragma:{name:"Diafragma",fn:"es un músculo que está debajo de los pulmones; al bajar entra el aire y al subir sale.",hint:"ese lugar es el músculo que ayuda a respirar."},
+  rinones:{name:"Riñones",fn:"Los riñones son del sistema excretor: filtran la sangre. No forman parte del sistema respiratorio.",fake:true},
+  corazon:{name:"Corazón",fn:"El corazón es del sistema circulatorio: bombea la sangre. No forma parte del sistema respiratorio.",fake:true}},
+ finish:"Fosas nasales → faringe → laringe → tráquea → bronquios → pulmones. Ese es el camino del aire. Y el diafragma ayuda a que entre y salga.",
+ pairs:[
+  ["Sistema respiratorio","Incorpora el oxígeno del aire y elimina el dióxido de carbono del cuerpo.","es todo el sistema: ¿qué incorpora y qué elimina?"],
+  ["Fosas nasales","Por donde entra el aire, que se calienta, se humedece y se limpia.","¿por dónde entra el aire?"],
+  ["Faringe","Conducto por donde pasan el aire y también la comida.","¿qué conducto comparten el aire y la comida?"],
+  ["Laringe","Tiene las cuerdas vocales y produce la voz.","¿dónde se produce la voz?"],
+  ["Tráquea","Tubo con anillos de cartílago que lleva el aire hacia los bronquios.","¿cuál es el tubo con anillos?"],
+  ["Bronquios","Dos tubos que entran uno en cada pulmón y se ramifican.","¿cuáles son los dos tubos que entran a los pulmones?"],
+  ["Pulmones","Donde, en los alvéolos, el oxígeno pasa a la sangre y sale el dióxido de carbono.","¿dónde está el intercambio de gases?"],
+  ["Diafragma","Músculo debajo de los pulmones que ayuda a que el aire entre y salga.","¿cuál es el músculo?"]],
+ Q:[
+  {q:"¿Qué es el sistema respiratorio?",model:"El sistema respiratorio se encarga de incorporar el oxígeno del aire que necesita nuestro cuerpo y de eliminar el dióxido de carbono que se produce en él.",
+   c:[{l:"Incorpora (toma) el oxígeno",a:["incorpor","tom","entr","ingres","absorb","consig","obtien","respir","recib","agarr"],b:["oxigen"]},
+      {l:"Elimina el dióxido de carbono",a:["elimin","expuls","sac","larg","echa","exhal","bot","tira"],b:["dioxido","carbon","co2"]}]},
+  {q:"¿Qué pasa con el aire en las fosas nasales?",model:"Por las fosas nasales entra el aire, que se calienta, se humedece y se limpia con los pelitos y el moco.",
+   c:[{l:"Entra el aire",a:["aire"]},{l:"Se calienta, se humedece o se limpia",a:["calient","calor","humed","limpi","filtr","pelit","pelos","moco","mucos"]}]},
+  {q:"¿Qué hacen la tráquea y los bronquios?",model:"Son tubos que llevan el aire hasta los pulmones. La tráquea se divide en dos bronquios, uno para cada pulmón.",
+   c:[{l:"Son tubos o conductos",a:["tubo","conduct","canal","caño","cano","manguer"]},{l:"Llevan el aire",a:["aire"]},{l:"Hasta los pulmones",a:["pulmon"]}]},
+  {q:"¿Qué pasa en los pulmones?",model:"En los alvéolos de los pulmones se hace el intercambio de gases: el oxígeno pasa a la sangre y el dióxido de carbono sale de la sangre para ser eliminado.",
+   c:[{l:"El oxígeno pasa a la sangre",a:["oxigen"],b:["sangre"]},{l:"Sale el dióxido de carbono",a:["dioxido","carbon","co2"]}]},
+  {q:"¿Qué es la inspiración y qué es la espiración?",model:"En la inspiración el aire entra a los pulmones. En la espiración el aire sale de los pulmones.",
+   c:[{l:"Inspiración: entra el aire",a:["inspir","inhal"],b:["entr","ingres","tom","mete"]},{l:"Espiración: sale el aire",a:["espir","exhal","expir"],b:["sal","sac","expuls","larg","echa"]}]},
+  {q:"¿Qué hace el diafragma?",model:"Es un músculo que está debajo de los pulmones. Cuando baja entra el aire y cuando sube sale.",
+   c:[{l:"Es un músculo",a:["muscul"]},{l:"Ayuda a que el aire entre y salga",a:["respir","aire","inspir","espir","pulmon","baja","sube","mueve"]}]},
+  {q:"¿Cómo podemos cuidar el sistema respiratorio?",model:"Respirar por la nariz, no fumar y alejarse del humo, hacer ejercicio al aire libre y abrigarse cuando hace frío.",need:2,
+   c:[{l:"Respirar por la nariz",a:["nariz","nasal"]},{l:"Evitar el humo y el cigarrillo",a:["fum","humo","cigarr"]},{l:"Hacer ejercicio al aire libre",a:["ejercic","deport","aire libre","corr"]},{l:"Abrigarse o taparse al toser",a:["abrig","tos","bufanda","frio","tapa"]}]}]
+}};
+
+/* ---------- nombre, estrellas, envío ---------- */
+let NAME=store.get("nat_name")||"";
+let stars=+store.get("nat_stars")||0;
+function addStar(n){stars+=n;store.set("nat_stars",stars);$("#stars").textContent="★ "+stars+" estrella"+(stars===1?"":"s")}
+addStar(0);
+let queue=[];try{queue=JSON.parse(store.get("nat_queue")||"[]")}catch(e){}
+function report(ev){
+  const d=new Date();
+  const p=n=>String(n).padStart(2,"0");
+  queue.push(Object.assign({fecha:"'"+p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+" "+p(d.getHours())+":"+p(d.getMinutes()),nombre:NAME||"(sin nombre)",sistema:SYS||""},ev));
+  store.set("nat_queue",JSON.stringify(queue));flush();
+}
+let flushing=false;
+async function flush(){
+  if(flushing||!queue.length||ENDPOINT.indexOf("http")!==0)return;flushing=true;
+  try{
+    while(queue.length){
+      await fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(queue[0])});
+      queue.shift();store.set("nat_queue",JSON.stringify(queue));
+    }
+  }catch(e){}finally{flushing=false}
+}
+window.addEventListener("online",flush);setTimeout(flush,1500);
+
+function showHome(){
+  $("#home").hidden=false;$("#game").hidden=true;$("#h1").innerHTML='Jugamos a <span>Naturales</span>';
+  $("#askName").hidden=!!NAME;$("#pick").hidden=!NAME;$("#hello").textContent=NAME?"¡Hola, "+NAME+"!":"";
+  if(!NAME)setTimeout(()=>$("#name").focus(),50);
+}
+$("#saveName").onclick=()=>{const v=$("#name").value.trim();if(!v){$("#name").focus();return}NAME=v;store.set("nat_name",v);report({juego:"Inicio",detalle:"Entró al juego"});askMic();showHome()};
+$("#name").onkeydown=e=>{if(e.key==="Enter")$("#saveName").click()};
+$("#changeName").onclick=()=>{NAME="";store.set("nat_name","");$("#name").value="";showHome()};
+
+/* ---------- micrófono ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function micUI(state){
+  const p=$("#micState");p.className="pill"+(state==="ok"?" ok":state==="bad"?" bad":"");
+  p.textContent=state==="ok"?"listo para hablar":state==="bad"?"bloqueado (podés escribir)":state==="none"?"este navegador no permite dictar, usá el micrófono del teclado":"pidiendo permiso…";
+  $("#micAsk").hidden=state!=="bad"&&state!=="wait";
+}
+let micOK=false;
+async function askMic(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){micUI(SR?"wait":"none");return}
+  try{const st=await navigator.mediaDevices.getUserMedia({audio:true});st.getTracks().forEach(t=>t.stop());micOK=true;micUI(SR?"ok":"none")}
+  catch(e){micUI("bad")}
+}
+$("#micAsk").onclick=askMic;
+askMic();
+
+/* ---------- voz ---------- */
+function say(t){try{const s=window.speechSynthesis;if(!s)return;s.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="es-AR";const v=s.getVoices().find(v=>/^es/i.test(v.lang));if(v)u.voice=v;u.rate=.95;s.speak(u)}catch(e){}}
+
+/* ---------- elegir sistema ---------- */
+let SYS=null,D=null;
+document.querySelectorAll(".sys").forEach(b=>b.onclick=()=>openSys(b.dataset.sys));
+$("#back").onclick=showHome;
+function openSys(k){
+  SYS=k;D=DATA[k];
+  $("#h1").innerHTML=D.title;$("#home").hidden=true;$("#game").hidden=false;
+  $("#defText").innerHTML=D.defHtml;
+  const b=$("#board");b.style.aspectRatio=D.aspect;b.style.maxWidth=D.maxw;
+  b.innerHTML='<svg viewBox="'+D.view+'" aria-hidden="true">'+D.svg+'</svg>'+D.zones.map(z=>'<div class="zone" data-zone="'+z[0]+'" style="left:'+z[1]+'%;top:'+z[2]+'%;width:'+D.zoneW+'" tabindex="0" role="button">?</div>').join("");
+  bindZones();build1();build2();qi=0;results=D.Q.map(()=>null);renderQ();
+  selTab("g1");window.scrollTo(0,0);
+  report({juego:"Inicio",detalle:"Abrió el sistema "+k});
+}
+$("#sayDef").onclick=()=>say($("#defText").textContent);
+function selTab(id){document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===id));document.querySelectorAll(".panel[role=tabpanel]").forEach(p=>p.hidden=p.id!==id)}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>selTab(t.dataset.tab));
+function setFb(el,cls,html){el.className="fb "+cls;el.innerHTML=html}
+
+/* ---------- JUEGO 1 ---------- */
+let sel1=null,placed=0,errs1=0;const fb1=$("#fb1");
+function build1(){
+  sel1=null;placed=0;errs1=0;
+  document.querySelectorAll(".zone").forEach(z=>{z.className="zone";z.textContent="?"});
+  const c=$("#chips");c.innerHTML="";
+  shuffle(Object.keys(D.org)).forEach(k=>{const b=document.createElement("button");b.type="button";b.className="chip";b.dataset.id=k;b.textContent=D.org[k].name;c.appendChild(b);bindChip(b)});
+  setFb(fb1,"info","Elegí un nombre para empezar.");
+}
+function selectChip(b){
+  document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("sel",x===b&&!x.classList.contains("sel")));
+  sel1=b.classList.contains("sel")?b.dataset.id:null;
+  if(sel1)setFb(fb1,"info","Elegiste <b>"+D.org[sel1].name+"</b>. Ahora tocá el cuadrito donde va.");
+}
+function bindChip(b){
+  let st=null,ghost=null;
+  b.addEventListener("pointerdown",e=>{st={x:e.clientX,y:e.clientY};try{b.setPointerCapture(e.pointerId)}catch(_){}});
+  b.addEventListener("pointermove",e=>{
+    if(!st)return;
+    if(!ghost&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>8){ghost=b.cloneNode(true);ghost.classList.add("ghost");document.body.appendChild(ghost);b.classList.add("lifted")}
+    if(ghost){ghost.style.left=e.clientX+"px";ghost.style.top=e.clientY+"px";const z=document.elementFromPoint(e.clientX,e.clientY)?.closest(".zone:not(.done)");document.querySelectorAll(".zone").forEach(x=>x.classList.toggle("sel",x===z))}
+  });
+  const end=e=>{
+    if(!st)return;
+    if(ghost){ghost.remove();ghost=null;b.classList.remove("lifted");document.querySelectorAll(".zone").forEach(x=>x.classList.remove("sel"));
+      const z=document.elementFromPoint(e.clientX,e.clientY)?.closest(".zone:not(.done)");if(z)place(b.dataset.id,z);
+    } else if(e.type==="pointerup")selectChip(b);
+    st=null;
+  };
+  b.addEventListener("pointerup",end);b.addEventListener("pointercancel",end);
+  b.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selectChip(b)}});
+}
+function bindZones(){document.querySelectorAll(".zone").forEach(z=>{
+  const go=()=>{if(z.classList.contains("done"))return;if(!sel1){setFb(fb1,"info","Primero elegí un nombre de abajo.");return}place(sel1,z)};
+  z.onclick=go;z.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}};
+})}
+function place(id,z){
+  const want=z.dataset.zone,o=D.org[id],chip=document.querySelector('.chip[data-id="'+id+'"]');
+  if(id===want){
+    z.className="zone done";z.textContent=o.name;chip.remove();sel1=null;placed++;addStar(1);
+    if(placed===D.zones.length){setFb(fb1,"ok","<b>¡Excelente, armaste todo el sistema!</b> "+D.finish);say("¡Excelente! Armaste todo el sistema.");
+      report({juego:"Armar",detalle:"Completó el esquema",correcto:"sí",errores:errs1});}
+    else setFb(fb1,"ok","<b>¡Muy bien!</b> "+o.name+": "+o.fn);
+  } else {
+    errs1++;z.classList.remove("shake");void z.offsetWidth;z.classList.add("shake");chip.classList.remove("sel");sel1=null;
+    setFb(fb1,"bad","<b>"+o.name+" no va ahí.</b> "+(o.fake?"":"Recordá, "+o.name+": ")+o.fn+"<br>Pista: "+D.org[want].hint);
+  }
+}
+$("#reset1").onclick=build1;
+
+/* ---------- JUEGO 2 ---------- */
+const COLORS=["var(--water)","var(--kidney)","#8B5CC9","var(--ok)","#C47A1E","#D04C8A","#2A9BA0","#6B7A2E"];
+let selL=null,done2=0,errs2=0;const fb2=$("#fb2");
+function build2(){
+  selL=null;done2=0;errs2=0;const P=D.pairs,L=$("#left"),R=$("#right");L.innerHTML="";R.innerHTML="";
+  shuffle(P.map((p,i)=>i)).forEach(i=>{const b=document.createElement("button");b.type="button";b.className="card term";b.dataset.i=i;b.innerHTML='<span class="badge"></span><span>'+P[i][0]+"</span>";b.onclick=()=>pickL(b);L.appendChild(b)});
+  shuffle(P.map((p,i)=>i)).forEach(i=>{const b=document.createElement("button");b.type="button";b.className="card";b.dataset.i=i;b.innerHTML='<span class="badge"></span><span>'+P[i][1]+"</span>";b.onclick=()=>pickR(b);R.appendChild(b)});
+  setFb(fb2,"info","Empezá tocando una palabra.");
+}
+function pickL(b){if(b.classList.contains("done"))return;document.querySelectorAll("#left .card").forEach(x=>x.classList.toggle("sel",x===b));selL=b;setFb(fb2,"info","Elegiste <b>"+D.pairs[b.dataset.i][0]+"</b>. Ahora tocá su frase.")}
+function pickR(b){
+  if(b.classList.contains("done"))return;
+  if(!selL){setFb(fb2,"info","Primero tocá una palabra de la izquierda.");return}
+  const i=+selL.dataset.i,P=D.pairs;
+  if(+b.dataset.i===i){
+    done2++;const c=COLORS[(done2-1)%COLORS.length];
+    [selL,b].forEach(x=>{x.classList.remove("sel");x.classList.add("done");x.style.setProperty("--pc",c);x.querySelector(".badge").textContent=done2});
+    addStar(1);selL=null;
+    if(done2===P.length){setFb(fb2,"ok","<b>¡Uniste todo!</b> "+(errs2===0?"Sin ningún error. ¡Sos una genia!":"Tuviste "+errs2+" error"+(errs2>1?"es":"")+". Jugá otra vez para hacerlo perfecto."));
+      report({juego:"Unir",detalle:"Unió todos los pares",correcto:"sí",errores:errs2});}
+    else setFb(fb2,"ok","<b>¡Correcto!</b> "+P[i][0]+": "+P[i][1]);
+  } else {
+    errs2++;b.classList.add("wrong");setTimeout(()=>b.classList.remove("wrong"),700);
+    setFb(fb2,"bad","<b>Esa frase no es de "+P[i][0]+".</b> Pensá: "+P[i][2]);
+  }
+}
+$("#reset2").onclick=build2;
+
+/* ---------- JUEGO 3 ---------- */
+let qi=0,results=[];const fb3=$("#fb3");
+function hit(t,c){return c.a.some(s=>t.includes(s))&&(!c.b||c.b.some(s=>t.includes(s)))}
+function renderDots(){$("#dots").innerHTML=D.Q.map((_,i)=>'<span class="dot'+(results[i]?" on":"")+(i===qi?" cur":"")+'"></span>').join("")}
+function renderQ(){stopRec();const Q=D.Q;$("#q").textContent=Q[qi].q;$("#qnum").textContent="Pregunta "+(qi+1)+" de "+Q.length;$("#ans").value="";setFb(fb3,"info","Escribí o hablá tu respuesta y tocá Revisar.");renderDots()}
+$("#check").onclick=()=>{
+  stopRec();
+  const text=$("#ans").value.trim(),Q=D.Q[qi];
+  if(text.length<3){setFb(fb3,"info","Primero escribí o decí tu respuesta.");return}
+  const t=norm(text),r=Q.c.map(c=>({l:c.l,ok:hit(t,c)}));const ok=r.filter(x=>x.ok).length>=(Q.need||Q.c.length);
+  const list='<ul class="checks">'+r.map(x=>'<li class="'+(x.ok?"":"miss")+'">'+x.l+"</li>").join("")+"</ul>";
+  if(ok){if(!results[qi])addStar(2);results[qi]=true;setFb(fb3,"ok","<b>¡Muy bien, está correcto!</b>"+list);say("¡Muy bien! Está correcto.")}
+  else{setFb(fb3,"bad","<b>Todavía le falta algo.</b> Fijate en lo que tiene la cruz:"+list+'<div class="model"><b>Respuesta de la carpeta:</b> '+Q.model+"</div>");say("Todavía le falta algo. Fijate lo que tiene la cruz.")}
+  renderDots();
+  report({juego:"Explicar",pregunta:Q.q,respuesta:text,correcto:ok?"sí":"no",detalle:r.filter(x=>!x.ok).map(x=>"Faltó: "+x.l).join(" | ")||"Todo bien"});
+};
+$("#next").onclick=()=>{qi=(qi+1)%D.Q.length;renderQ()};
+$("#sayQ").onclick=()=>say(D.Q[qi].q);
+
+let rec=null;
+function stopRec(){if(rec){try{rec.stop()}catch(e){}}}
+$("#dictate").onclick=()=>{
+  if(!SR){$("#dictTip").textContent="Este navegador no permite dictar acá: tocá el micrófono del teclado del celular.";$("#ans").focus();return}
+  if(rec){stopRec();return}
+  try{
+    rec=new SR();rec.lang="es-AR";rec.interimResults=true;rec.continuous=true;
+    const base=$("#ans").value?$("#ans").value+" ":"";
+    rec.onresult=e=>{let t="";for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;$("#ans").value=base+t};
+    rec.onerror=e=>{$("#dictTip").textContent=(e.error==="not-allowed"||e.error==="service-not-allowed")?"No hay permiso de micrófono. Tocá «Permitir micrófono» en el inicio o usá el micrófono del teclado.":"No te escuché bien, probá otra vez."};
+    rec.onend=()=>{rec=null;const d=$("#dictate");d.classList.remove("rec");d.textContent="🎤 Hablar"};
+    rec.start();const d=$("#dictate");d.classList.add("rec");d.textContent="⏹ Terminar";$("#dictTip").textContent="Te escucho… cuando termines tocá Terminar.";
+  }catch(e){rec=null;$("#dictTip").textContent="No pude usar el micrófono: tocá el micrófono del teclado del celular."}
+};
+
+showHome();
+})();
+</script>
+</body>
+</html>
